@@ -2382,6 +2382,9 @@ static int shmem_show_options(struct seq_file *seq, struct dentry *root)
 	return 0;
 }
 
+#endif /* CONFIG_TMPFS */
+
+/* Anonymous shmem files do not require the mountable CONFIG_TMPFS filesystem. */
 #define MFD_NAME_PREFIX "memfd:"
 #define MFD_NAME_PREFIX_LEN (sizeof(MFD_NAME_PREFIX) - 1)
 #define MFD_NAME_MAX_LEN (NAME_MAX - MFD_NAME_PREFIX_LEN)
@@ -2392,7 +2395,6 @@ SYSCALL_DEFINE2(memfd_create,
 		const char __user *, uname,
 		unsigned int, flags)
 {
-	struct shmem_inode_info *info;
 	struct file *file;
 	int fd, error;
 	char *name;
@@ -2435,7 +2437,6 @@ SYSCALL_DEFINE2(memfd_create,
 		error = PTR_ERR(file);
 		goto err_fd;
 	}
-	info = SHMEM_I(file->f_path.dentry->d_inode);
 	file->f_mode |= FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
 	file->f_flags |= O_RDWR | O_LARGEFILE;
 
@@ -2449,8 +2450,6 @@ err_name:
 	kfree(name);
 	return error;
 }
-
-#endif /* CONFIG_TMPFS */
 
 static void shmem_put_super(struct super_block *sb)
 {
